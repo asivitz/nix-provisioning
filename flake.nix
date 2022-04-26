@@ -1,62 +1,104 @@
 {
-  description = "Axis's darwin system";
+  description = "Home Manager configurations";
 
   inputs = {
-    # Package sets
-    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-21.11-darwin";
-    nixpkgs-unstable.url = github:NixOS/nixpkgs/nixpkgs-unstable;
-
-    # Environment/system management
-    darwin.url = "github:lnl7/nix-darwin/master";
-    darwin.inputs.nixpkgs.follows = "nixpkgs-unstable";
-    home-manager.url = "github:nix-community/home-manager";
-    home-manager.inputs.nixpkgs.follows = "nixpkgs-unstable";
+    nixpkgs.url = "flake:nixpkgs";
+    homeManager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, darwin, nixpkgs, home-manager, ... }@inputs:
-  let 
+  outputs = { self, nixpkgs, homeManager }: {
+    homeConfigurations = 
+      let
+        relativeXDGConfigPath = ".config";
+        relativeXDGDataPath = ".local/share";
+        relativeXDGCachePath = ".cache";
+      in
 
-    inherit (darwin.lib) darwinSystem;
-    inherit (inputs.nixpkgs-unstable.lib) attrValues makeOverridable optionalAttrs singleton;
+    {
+      "axis" = homeManager.lib.homeManagerConfiguration {
+        configuration = {pkgs, ...}: {
+          programs.home-manager.enable = true;
+          programs.bat.enable = true;
+          programs.neovim = {
+            enable = true;
+            viAlias = true;
+            plugins = with pkgs.vimPlugins; [
+              vim-nix
+            ];
+            extraConfig = builtins.readFile ./extraConfig.vim;
+          };
+          programs.z-lua.enable = true;
+          programs.zsh = {
+            enable = true;
+            enableCompletion = true;
+            enableAutosuggestions = false;
+            history = {
+              path = "${relativeXDGDataPath}/zsh/.zsh_history";
+              size = 50000;
+              save = 50000;
+            };
+            shellAliases = import ./home/aliases.nix;
+            # defaultKeymap = "emacs";
+            initExtra = builtins.readFile ./home/extra.zsh;
 
-    # Configuration for `nixpkgs`
-    nixpkgsConfig = {
-      config = { allowUnfree = true; };
-    }; 
-  in
-  {
-    # My `nix-darwin` configs
-      
-    darwinConfigurations = rec {
-      whirrrgon = darwinSystem {
+            plugins = [
+              {
+                name = "zsh-syntax-highlighting";
+                src = pkgs.fetchFromGitHub {
+                  owner = "zsh-users";
+                  repo = "zsh-syntax-highlighting";
+                  rev = "be3882aeb054d01f6667facc31522e82f00b5e94";
+                  sha256 = "0w8x5ilpwx90s2s2y56vbzq92ircmrf0l5x8hz4g1nx3qzawv6af";
+                };
+              }
+            ];
+            prezto = {
+              enable = true;
+              color = true;
+              prompt = {
+                theme = "skwp";
+              };
+              editor = {
+                keymap = "vi";
+              };
+            };
+          };
+
+          home.packages = with pkgs;
+            [ 
+              coreutils
+              curl
+              wget
+
+              # haskellPackages.cabal-install
+              # haskellPackages.hpack
+              # haskellPackages.implicit-hie
+              stack
+
+              ripgrep
+              alacritty
+              zsh
+              oh-my-zsh
+              zsh-z
+              fd
+              tmux
+              reattach-to-user-namespace
+              autoconf
+              automake
+              python3Full
+              nodePackages.npm
+              nodejs
+            ];
+        };
+
         system = "aarch64-darwin";
-        modules = [ 
-          # Main `nix-darwin` config
-          ./configuration.nix
-          # `home-manager` module
-          home-manager.darwinModules.home-manager
-          {
-            nixpkgs = nixpkgsConfig;
-            # `home-manager` config
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.users.axis = import ./home.nix;            
-          }
-        ];
+        homeDirectory = "/Users/axis";
+        username = "axis";
+        stateVersion = "21.11";
       };
     };
-
-    # Overlays --------------------------------------------------------------- {{{
-
-    overlays = {
-      # Overlay useful on Macs with Apple Silicon
-        apple-silicon = final: prev: optionalAttrs (prev.stdenv.system == "aarch64-darwin") {
-          # Add access to x86 packages system is running Apple Silicon
-          pkgs-x86 = import inputs.nixpkgs-unstable {
-            system = "x86_64-darwin";
-            inherit (nixpkgsConfig) config;
-          };
-        }; 
-      };
- };
+  };
 }
