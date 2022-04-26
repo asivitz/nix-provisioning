@@ -5,7 +5,7 @@ Plug 'ervandew/supertab'
 Plug 'parsonsmatt/vim2hs'
 Plug 'AndrewRadev/linediff.vim'
 Plug 'airblade/vim-gitgutter'
-Plug '/usr/local/opt/fzf'
+" Plug '/usr/local/opt/fzf'
 Plug 'junegunn/fzf.vim'
 Plug 'junegunn/fzf'
 Plug 'mhinz/vim-grepper'
@@ -16,7 +16,6 @@ Plug 'tomtom/tcomment_vim'
 Plug 'ndmitchell/ghcid', { 'rtp': 'plugins/nvim' }
 Plug 'tpope/vim-unimpaired'
 Plug 'whiteinge/diffconflicts'
-" Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'neovim/nvim-lspconfig'
 Plug 'MaxMEllon/vim-jsx-pretty'
 call plug#end()
