@@ -22,7 +22,7 @@ in
     enableCompletion = true;
     enableAutosuggestions = false;
     history = {
-      path = "${relativeXDGDataPath}/zsh/.zsh_history";
+      path = "/Users/axis/${relativeXDGDataPath}/zsh/.zsh_history";
       size = 50000;
       save = 50000;
     };
