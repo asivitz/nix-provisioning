@@ -43,9 +43,6 @@ in
     prezto = {
       enable = true;
       color = true;
-      prompt = {
-        theme = "skwp";
-      };
       editor = {
         keymap = "vi";
       };
@@ -70,7 +67,6 @@ in
 
       ripgrep
       alacritty
-      # zsh-z
       fd
       tmux
       reattach-to-user-namespace
@@ -79,6 +75,7 @@ in
       python3Full
       nodePackages.npm
       nodejs
+      findutils
 
       # haskell
       ormolu
