@@ -77,7 +77,6 @@ in
       nodejs
       findutils
 
-      # haskell
       ormolu
       stack
       # haskellPackages.cabal-install
