@@ -5,46 +5,52 @@ let
   relativeXDGCachePath = ".cache";
 in
 {
-  programs.home-manager.enable = true;
-  programs.bat.enable = true;
-  programs.neovim = {
-    enable = true;
-    viAlias = true;
-    plugins = with pkgs.vimPlugins; [
-      vim-nix
-      nvim-fzf
-    ];
-    extraConfig = builtins.readFile ./extraConfig.vim;
-  };
-  programs.z-lua.enable = true;
-  programs.zsh = {
-    enable = true;
-    enableCompletion = true;
-    enableAutosuggestions = false;
-    history = {
-      path = "/Users/axis/${relativeXDGDataPath}/zsh/.zsh_history";
-      size = 50000;
-      save = 50000;
-    };
-    shellAliases = import ./home/aliases.nix;
-    initExtra = builtins.readFile ./home/extra.zsh;
-
-    plugins = [
-      {
-        name = "zsh-syntax-highlighting";
-        src = pkgs.fetchFromGitHub {
-          owner = "zsh-users";
-          repo = "zsh-syntax-highlighting";
-          rev = "be3882aeb054d01f6667facc31522e82f00b5e94";
-          sha256 = "0w8x5ilpwx90s2s2y56vbzq92ircmrf0l5x8hz4g1nx3qzawv6af";
-        };
-      }
-    ];
-    prezto = {
+  programs = {
+    git = {
       enable = true;
-      color = true;
-      editor = {
-        keymap = "vi";
+      difftastic.enable = true;
+    };
+    home-manager.enable = true;
+    bat.enable = true;
+    neovim = {
+      enable = true;
+      viAlias = true;
+      plugins = with pkgs.vimPlugins; [
+        vim-nix
+        nvim-fzf
+      ];
+      extraConfig = builtins.readFile ./extraConfig.vim;
+    };
+    z-lua.enable = true;
+    zsh = {
+      enable = true;
+      enableCompletion = true;
+      enableAutosuggestions = false;
+      history = {
+        path = "/Users/axis/${relativeXDGDataPath}/zsh/.zsh_history";
+        size = 50000;
+        save = 50000;
+      };
+      shellAliases = import ./home/aliases.nix;
+      initExtra = builtins.readFile ./home/extra.zsh;
+
+      plugins = [
+        {
+          name = "zsh-syntax-highlighting";
+          src = pkgs.fetchFromGitHub {
+            owner = "zsh-users";
+            repo = "zsh-syntax-highlighting";
+            rev = "be3882aeb054d01f6667facc31522e82f00b5e94";
+            sha256 = "0w8x5ilpwx90s2s2y56vbzq92ircmrf0l5x8hz4g1nx3qzawv6af";
+          };
+        }
+      ];
+      prezto = {
+        enable = true;
+        color = true;
+        editor = {
+          keymap = "vi";
+        };
       };
     };
   };
@@ -76,6 +82,8 @@ in
       nodePackages.npm
       nodejs
       findutils
+
+      sloccount
 
       ormolu
       stack
