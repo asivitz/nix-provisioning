@@ -12,6 +12,10 @@ in
     };
     home-manager.enable = true;
     bat.enable = true;
+    broot = {
+      enable = true;
+      enableZshIntegration = true;
+    };
     neovim = {
       enable = true;
       viAlias = true;
@@ -84,6 +88,7 @@ in
       findutils
 
       sloccount
+      du-dust
 
       ormolu
       stack

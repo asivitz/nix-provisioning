@@ -29,4 +29,4 @@ zstyle ':vcs_info:*' formats '[%F{red}%b%f]' # git(main)
 
 PROMPT='%F{magenta}%n%f@%F{yellow}%m%f %F{green}%~%f %{%F{cyan}%}${NIXSHELL:+"${NIXSHELL} "}%{%f%}${vcs_info_msg_0_:+"${vcs_info_msg_0_} "}$ '
 
-PATH="$HOME/.ghcup/bin:$PATH"
+PATH="$HOME/.ghcup/bin:$HOME/.local/bin:$PATH"
