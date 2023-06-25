@@ -9,16 +9,24 @@
     };
   };
 
-  outputs = { self, nixpkgs, homeManager }: {
-    homeConfigurations = {
-      "axis" = homeManager.lib.homeManagerConfiguration {
-        configuration = import ./home.nix;
-
+  outputs = { self, nixpkgs, homeManager }:
+    let
         system = "aarch64-darwin";
-        homeDirectory = "/Users/axis";
-        username = "axis";
-        stateVersion = "21.11";
+    in {
+      homeConfigurations = {
+        "axis" = homeManager.lib.homeManagerConfiguration {
+          pkgs = nixpkgs.legacyPackages.${system};
+          modules = [
+            ./home.nix
+            {
+              home = {
+                username = "axis";
+                homeDirectory = "/Users/axis";
+                stateVersion = "22.05";
+              };
+            }
+          ];
+        };
       };
     };
-  };
 }

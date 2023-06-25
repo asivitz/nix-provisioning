@@ -21,12 +21,8 @@ unsetopt correct_all
 unsetopt share_history
 
 # Show packages loaded via nix shell
-NIXSHELL=$(echo $PATH | tr ':' '\n' | grep '/nix/store' | sed 's#^/nix/store/[a-z0-9]*-##' | sed 's#-[^-]\+$##' | head -n 3 | xargs -d '\n')
-
-autoload -Uz vcs_info # enable vcs_info
-precmd () { vcs_info } # always load before displaying the prompt
-zstyle ':vcs_info:*' formats '[%F{red}%b%f]' # git(main)
-
-PROMPT='%F{magenta}%n%f@%F{yellow}%m%f %F{green}%~%f %{%F{cyan}%}${NIXSHELL:+"${NIXSHELL} "}%{%f%}${vcs_info_msg_0_:+"${vcs_info_msg_0_} "}$ '
+export NIXSHELL=$(echo $PATH | tr ':' '\n' | grep '/nix/store' | sed 's#^/nix/store/[a-z0-9]*-##' | sed 's#-[^-]\+$##' | head -n 3 | xargs -d '\n')
 
 PATH="$HOME/.ghcup/bin:$HOME/.local/bin:$PATH"
+
+eval "$(/opt/homebrew/bin/brew shellenv)"

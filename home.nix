@@ -6,6 +6,53 @@ let
 in
 {
   programs = {
+    starship = {
+      enable = true;
+      package = pkgs.starship;
+      settings = {
+        add_newline = false;
+        format = pkgs.lib.concatStrings [
+           "$username"
+           "$hostname"
+           "$localip"
+           "$directory"
+           "$git_branch"
+           "$git_commit"
+           "$git_state"
+           "$git_metrics"
+           "$git_status"
+           "$nix_shell"
+           "$env_var"
+           # "$aws"
+           "$cmd_duration"
+           "$character"
+         ];
+         directory = {
+           style = "yellow";
+         };
+         git_status = {
+           stashed = "";
+           style = "red";
+         };
+         git_branch = {
+           format = "[$branch(:$remote_branch)]($style) ";
+           style = "purple";
+         };
+         env_var = {
+           variable = "NIXSHELL";
+           format = "[$env_value]($style)";
+           style = "green";
+         };
+         character = {
+           success_symbol = "[\\$](bold yellow)";
+           error_symbol = "[\\$](bold red)";
+         };
+         shell = {
+          disabled = true;
+         };
+      };
+    };
+
     git = {
       enable = true;
       difftastic.enable = true;
@@ -90,11 +137,11 @@ in
       sloccount
       du-dust
 
-      ormolu
+      # ormolu
       stack
       # haskellPackages.cabal-install
       # haskellPackages.hpack
       # haskellPackages.implicit-hie
-
+      cmake
     ];
 }
