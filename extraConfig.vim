@@ -19,6 +19,7 @@ Plug 'whiteinge/diffconflicts'
 Plug 'neovim/nvim-lspconfig'
 Plug 'MaxMEllon/vim-jsx-pretty'
 Plug 'RRethy/vim-illuminate'
+Plug 'folke/trouble.nvim'
 call plug#end()
 
 set backupdir=~/.local/share/nvim/backup//
@@ -143,6 +144,7 @@ noremap Q ZQ
 tnoremap <C-H> <C-\><C-n>:tabp<CR>
 tnoremap <C-L> <C-\><C-n>:tabn<CR>
 tnoremap <C-Space> <C-\><C-n>
+nnoremap <leader>j <cmd>TroubleToggle<cr>
 
 " use easymotion to yank/paste a particular line
 function! PullInLine()
@@ -271,7 +273,7 @@ hi TermCursor ctermfg=green guifg=green
 " From the fzf.vim docs-- :Rg search command
 command! -bang -nargs=* Rg
       \ call fzf#vim#grep(
-      \   'rg --column --line-number --no-heading --color=always '.shellescape(<q-args>), 1,
+      \   'rg --column --line-number --no-heading --color=always --type haskell '.shellescape(<q-args>), 1,
       \   <bang>0 ? fzf#vim#with_preview('up:60%')
       \           : fzf#vim#with_preview('right:50%:hidden', '?'),
       \   <bang>0)
@@ -317,11 +319,15 @@ nmap <silent> gd <Plug>(lcn-definition)
 lua << EOF
 local nvim_lsp = require('lspconfig')
 
+-- vim.lsp.set_log_level("debug")
+
 -- Use an on_attach function to only map the following keys
 -- after the language server attaches to the current buffer
 local on_attach = function(client, bufnr)
   local function buf_set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
   local function buf_set_option(...) vim.api.nvim_buf_set_option(bufnr, ...) end
+
+  -- vim.api.nvim_command [[autocmd CursorHold,CursorHoldI,InsertLeave <buffer> lua vim.lsp.codelens.refresh()]]
 
   --Enable completion triggered by <c-x><c-o>
   buf_set_option('omnifunc', 'v:lua.vim.lsp.omnifunc')
@@ -332,7 +338,7 @@ local on_attach = function(client, bufnr)
   -- See `:help vim.lsp.*` for documentation on any of the below functions
   buf_set_keymap('n', 'gD', '<Cmd>lua vim.lsp.buf.declaration()<CR>', opts)
   buf_set_keymap('n', 'gd', '<Cmd>lua vim.lsp.buf.definition()<CR>', opts)
-  buf_set_keymap('n', '<Tab>', '<Cmd>lua vim.lsp.buf.hover()<CR>', opts)
+  buf_set_keymap('n', '<space>r', '<Cmd>lua vim.lsp.buf.hover()<CR>', opts)
   buf_set_keymap('n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<CR>', opts)
   -- buf_set_keymap('n', '<C-k>', '<cmd>lua vim.lsp.buf.signature_help()<CR>', opts)
   buf_set_keymap('n', '<space>wa', '<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>', opts)
@@ -347,20 +353,28 @@ local on_attach = function(client, bufnr)
   buf_set_keymap('n', ']d', '<cmd>lua vim.diagnostic.goto_next()<CR>', opts)
   buf_set_keymap('n', '<space>q', '<cmd>lua vim.lsp.diagnostic.set_loclist()<CR>', opts)
   buf_set_keymap("n", "<space>f", "<cmd>lua vim.lsp.buf.formatting()<CR>", opts)
+  buf_set_keymap("n", "<leader>l", "<Cmd>lua vim.lsp.codelens.run()<CR>", {silent = true;})
 
 end
 
 nvim_lsp.hls.setup
   {
+    -- cmd = { "haskell-language-server-wrapper", "--lsp", "--debug" },
     on_attach = on_attach,
     flags = {
       debounce_text_changes = 150,
     },
     settings = {
       haskell = {
-          formattingProvider = "ormolu",
-      }
-    }
+        formattingProvider = "ormolu",
+        plugin = {
+          hlint = {
+            codeActionsOn = false,
+            diagnosticsOn = false
+          },
+        },
+      },
+    },
   }
 
 require'hop'.setup()
@@ -394,6 +408,23 @@ require('illuminate').configure({
     -- min_count_to_highlight: minimum number of matches required to perform highlighting
     min_count_to_highlight = 1,
 })
+require('trouble').setup(
+  {
+      icons = false,
+      fold_open = "v",
+      fold_closed = ">",
+      indent_lines = false,
+      signs = {
+          error = "error",
+          warning = "warn",
+          hint = "hint",
+          information = "info"
+      },
+      use_diagnostic_signs = false 
+  })
 EOF
 
 hi illuminatedWord guibg=none guifg=#bb9999
+
+let g:neovide_cursor_animation_length = 0.01
+let g:neovide_cursor_trail_size = 0.1

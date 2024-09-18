@@ -129,7 +129,9 @@ in
       reattach-to-user-namespace
       autoconf
       automake
-      python3Full
+      # python3Full
+      # python311Packages.pip
+      # python311Packages.pyaudio
       nodePackages.npm
       nodejs
       findutils
@@ -138,10 +140,11 @@ in
       du-dust
 
       # ormolu
-      stack
+      # stack
       # haskellPackages.cabal-install
       # haskellPackages.hpack
       # haskellPackages.implicit-hie
       cmake
+      neovim-nightly
     ];
 }
