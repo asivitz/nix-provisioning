@@ -122,8 +122,9 @@ nmap <BACKSPACE> <C-o>
 nmap <leader>/ :nohl<CR>
 nmap <leader>p :set paste!<BAR>set paste?<CR>
 nnoremap <expr> <Leader>e ":Grepper -tool rg -noopen -jump -query '" . expand('<cword>') . "\\s+::\|^" . expand('<cword>') . "$'<CR>"
-nnoremap <expr> <Leader>f ":Rg! " . input("Search: ") . "<CR>"
-nnoremap <expr> <Leader>u ":Rg! " . expand('<cword>') . "<CR>"
+" nnoremap <expr> <Leader>f ":Rg! " . input("Search: ") . "<CR>"
+nnoremap <leader>u :Grepper -tool rg -cword -noprompt -noquickfix<cr>
+" nnoremap <expr> <Leader>u ":Rg! " . expand('<cword>') . "<CR>"
 nnoremap <Leader>a :cc<CR>
 nnoremap <leader>W :%s/\s\+$//<CR>:let @/=''<CR>``
 noremap 9 $
@@ -354,7 +355,6 @@ local on_attach = function(client, bufnr)
   buf_set_keymap('n', '<space>q', '<cmd>lua vim.lsp.diagnostic.set_loclist()<CR>', opts)
   buf_set_keymap("n", "<space>f", "<cmd>lua vim.lsp.buf.formatting()<CR>", opts)
   buf_set_keymap("n", "<leader>l", "<Cmd>lua vim.lsp.codelens.run()<CR>", {silent = true;})
-
 end
 
 nvim_lsp.hls.setup
