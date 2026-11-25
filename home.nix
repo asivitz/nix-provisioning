@@ -56,6 +56,7 @@ in
     git = {
       enable = true;
       difftastic.enable = true;
+      lfs.enable = true;
     };
     home-manager.enable = true;
     bat.enable = true;
@@ -76,14 +77,14 @@ in
     zsh = {
       enable = true;
       enableCompletion = true;
-      enableAutosuggestions = false;
+      autosuggestion.enable = false;
       history = {
         path = "/Users/axis/${relativeXDGDataPath}/zsh/.zsh_history";
         size = 50000;
         save = 50000;
       };
       shellAliases = import ./home/aliases.nix;
-      initExtra = builtins.readFile ./home/extra.zsh;
+      initContent = builtins.readFile ./home/extra.zsh;
 
       plugins = [
         {
@@ -145,6 +146,5 @@ in
       # haskellPackages.hpack
       # haskellPackages.implicit-hie
       cmake
-      neovim-nightly
     ];
 }

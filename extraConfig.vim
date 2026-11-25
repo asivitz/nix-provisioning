@@ -2,16 +2,17 @@ call plug#begin('~/.local/share/nvim/plugged')
 Plug 'phaazon/hop.nvim'
 Plug 'mileszs/ack.vim'
 Plug 'ervandew/supertab'
-Plug 'parsonsmatt/vim2hs'
+" Plug 'parsonsmatt/vim2hs'
+Plug 'neovimhaskell/haskell-vim'
 Plug 'AndrewRadev/linediff.vim'
 Plug 'airblade/vim-gitgutter'
 " Plug '/usr/local/opt/fzf'
 Plug 'junegunn/fzf.vim'
 Plug 'junegunn/fzf'
 Plug 'mhinz/vim-grepper'
-Plug 'vim-airline/vim-airline'
-Plug 'vim-airline/vim-airline-themes'
-Plug 'morhetz/gruvbox'
+Plug 'nvim-lualine/lualine.nvim'
+Plug 'nvim-tree/nvim-web-devicons'
+Plug 'ellisonleao/gruvbox.nvim'
 Plug 'tomtom/tcomment_vim'
 Plug 'ndmitchell/ghcid', { 'rtp': 'plugins/nvim' }
 Plug 'tpope/vim-unimpaired'
@@ -19,7 +20,10 @@ Plug 'whiteinge/diffconflicts'
 Plug 'neovim/nvim-lspconfig'
 Plug 'MaxMEllon/vim-jsx-pretty'
 Plug 'RRethy/vim-illuminate'
-Plug 'folke/trouble.nvim'
+Plug 'folke/trouble.nvim', { 'tag': 'v3.7.1' }
+Plug 'nvim-lua/plenary.nvim'
+Plug 'nvim-pack/nvim-spectre'
+Plug 'lukas-reineke/indent-blankline.nvim'
 call plug#end()
 
 set backupdir=~/.local/share/nvim/backup//
@@ -49,9 +53,8 @@ hi! link hsOperator hsDelimiter
 
 set termguicolors
 "let $NVIM_TUI_ENABLE_TRUE_COLOR=1
-colors gruvbox
 set background=dark
-let g:airline_theme='luna'
+colorscheme gruvbox
 
 " set leader to ,
 let mapleader=","
@@ -118,11 +121,13 @@ au BufReadPost * if line("'\"") > 0|if line("'\"") <= line("$")|exe("norm '\"")|
 " USEFUL SHORTCUTS
 "---------------------------------------------------------------------------
 
+nmap <S-q> <Nop>
+
 nmap <BACKSPACE> <C-o>
 nmap <leader>/ :nohl<CR>
 nmap <leader>p :set paste!<BAR>set paste?<CR>
 nnoremap <expr> <Leader>e ":Grepper -tool rg -noopen -jump -query '" . expand('<cword>') . "\\s+::\|^" . expand('<cword>') . "$'<CR>"
-" nnoremap <expr> <Leader>f ":Rg! " . input("Search: ") . "<CR>"
+nnoremap <expr> <Leader>f ":Rg! " . input("Search: ") . "<CR>"
 nnoremap <leader>u :Grepper -tool rg -cword -noprompt -noquickfix<cr>
 " nnoremap <expr> <Leader>u ":Rg! " . expand('<cword>') . "<CR>"
 nnoremap <Leader>a :cc<CR>
@@ -145,7 +150,8 @@ noremap Q ZQ
 tnoremap <C-H> <C-\><C-n>:tabp<CR>
 tnoremap <C-L> <C-\><C-n>:tabn<CR>
 tnoremap <C-Space> <C-\><C-n>
-nnoremap <leader>j <cmd>TroubleToggle<cr>
+nnoremap <leader>j :Trouble diagnostics toggle<cr>
+nnoremap <S-q> <Nop>
 
 " use easymotion to yank/paste a particular line
 function! PullInLine()
@@ -242,7 +248,7 @@ autocmd BufNewFile,BufRead *.sass             set ft=sass.css
 " ENCODING SETTINGS
 "---------------------------------------------------------------------------
 "set encoding=utf-8
-set termencoding=utf-8
+"set termencoding=utf-8
 set fileencoding=utf-8
 set fileencodings=ucs-bom,utf-8,big5,gb2312,latin1
 
@@ -282,45 +288,36 @@ command! -bang -nargs=* Rg
 command! -bang -nargs=? -complete=dir Files
   \ call fzf#vim#files(<q-args>, fzf#vim#with_preview('up:60%'), <bang>0)
 
-" COC
-
-" Use `[g` and `]g` to navigate diagnostics
-" Use `:CocDiagnostics` to get all diagnostics of current buffer in location list.
-" nmap <silent> [g <Plug>(coc-diagnostic-prev)
-" nmap <silent> ]g <Plug>(coc-diagnostic-next)
-"
-" " GoTo code navigation.
-" nmap <silent> gd <Plug>(coc-definition)
-" nmap <silent> gy <Plug>(coc-type-definition)
-" nmap <silent> gi <Plug>(coc-implementation)
-" nmap <silent> gr <Plug>(coc-references)
-" " Apply AutoFix to problem on the current line.
-" nmap <leader>qf  <Plug>(coc-fix-current)
-"
-" " Use K to show documentation in preview window.
-" nnoremap <silent> <Tab> :call <SID>show_documentation()<CR>
-"
-" function! s:show_documentation()
-"   if (index(['vim','help'], &filetype) >= 0)
-"     execute 'h '.expand('<cword>')
-"   else
-"     call CocAction('doHover')
-"   endif
-" endfunction
-
 " LSP
 " nmap <silent>K <Plug>(lcn-hover)
 nmap <silent> gd <Plug>(lcn-definition)
-
-
-" lua << EOF
-  " require'lspconfig'.hls.setup{}
-" EOF
+" Add a mapping to jump forward b/c Tab (which is the same as C-i) is mapped
+" elsewhere
+nnoremap <silent> <C-p> :call feedkeys("\<C-i>", "nx")<CR>
 
 lua << EOF
-local nvim_lsp = require('lspconfig')
 
--- vim.lsp.set_log_level("debug")
+do
+  local buf = 0
+  local function prev_diagnostic()
+    local num_errors = #vim.diagnostic.get(buf, {severity = vim.diagnostic.severity.ERROR})
+    if (num_errors > 0) then
+      vim.diagnostic.goto_prev({severity = vim.diagnostic.severity.ERROR})
+    else
+      vim.diagnostic.goto_prev()
+    end
+  end
+  local function next_diagnostic()
+    local num_errors = #vim.diagnostic.get(buf, {severity = vim.diagnostic.severity.ERROR})
+    if (num_errors > 0) then
+      vim.diagnostic.goto_next({severity = vim.diagnostic.severity.ERROR})
+    else
+      vim.diagnostic.goto_next()
+    end
+  end
+  vim.keymap.set("n", "<S-Tab>", prev_diagnostic, {silent = true})
+  vim.keymap.set("n", "<Tab>", next_diagnostic, {silent = true})
+end
 
 -- Use an on_attach function to only map the following keys
 -- after the language server attaches to the current buffer
@@ -347,7 +344,7 @@ local on_attach = function(client, bufnr)
   buf_set_keymap('n', '<space>wl', '<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<CR>', opts)
   buf_set_keymap('n', '<space>D', '<cmd>lua vim.lsp.buf.type_definition()<CR>', opts)
   buf_set_keymap('n', '<space>rn', '<cmd>lua vim.lsp.buf.rename()<CR>', opts)
-  buf_set_keymap('n', '<space>ca', '<cmd>lua vim.lsp.buf.code_action()<CR>', opts)
+  buf_set_keymap('n', '<leader>c', '<cmd>lua vim.lsp.buf.code_action()<CR>', opts)
   buf_set_keymap('n', 'gr', '<cmd>lua vim.lsp.buf.references()<CR>', opts)
   buf_set_keymap('n', '<space>e', '<cmd>lua vim.diagnostic.open_float()<CR>', opts)
   buf_set_keymap('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>', opts)
@@ -357,26 +354,38 @@ local on_attach = function(client, bufnr)
   buf_set_keymap("n", "<leader>l", "<Cmd>lua vim.lsp.codelens.run()<CR>", {silent = true;})
 end
 
-nvim_lsp.hls.setup
-  {
-    -- cmd = { "haskell-language-server-wrapper", "--lsp", "--debug" },
-    on_attach = on_attach,
-    flags = {
-      debounce_text_changes = 150,
-    },
-    settings = {
-      haskell = {
-        formattingProvider = "ormolu",
-        plugin = {
-          hlint = {
-            codeActionsOn = false,
-            diagnosticsOn = false
-          },
+vim.lsp.config('hls', {
+  -- cmd = {
+  --   "/Users/axis/dev/oss/haskell-language-server/dist-newstyle/build/aarch64-osx/ghc-9.12.2/haskell-language-server-2.14.0.0/x/haskell-language-server-wrapper/build/haskell-language-server-wrapper/haskell-language-server-wrapper",
+  --   "--debug",
+  --   "--lsp",
+  -- },
+  -- cmd = vim.lsp.rpc.connect("127.0.0.1", 5007),
+  filetypes = { 'haskell', 'lhaskell', 'cabal' },
+  settings = {
+    haskell = {
+      formattingProvider = "ormolu",
+      plugin = {
+        hlint = {
+          codeActionsOn = false,
+          diagnosticsOn = false
         },
       },
     },
-  }
+  },
+})
+vim.lsp.enable('hls')
+vim.api.nvim_create_autocmd('LspAttach', {
+  group = vim.api.nvim_create_augroup('my.lsp', {}),
+  callback = function(args)
+    local client = assert(vim.lsp.get_client_by_id(args.data.client_id))
+    on_attach(client, args.buf)
+  end,
+})
 
+require('lualine').setup(
+  {options = { theme  = 'iceberg_dark' }}
+)
 require'hop'.setup()
 require('illuminate').configure({
     -- providers: provider used to get references in the buffer, ordered by priority
@@ -408,20 +417,8 @@ require('illuminate').configure({
     -- min_count_to_highlight: minimum number of matches required to perform highlighting
     min_count_to_highlight = 1,
 })
-require('trouble').setup(
-  {
-      icons = false,
-      fold_open = "v",
-      fold_closed = ">",
-      indent_lines = false,
-      signs = {
-          error = "error",
-          warning = "warn",
-          hint = "hint",
-          information = "info"
-      },
-      use_diagnostic_signs = false 
-  })
+require('trouble').setup()
+require('ibl').setup()
 EOF
 
 hi illuminatedWord guibg=none guifg=#bb9999
